@@ -1,0 +1,14 @@
+body {
+	background-color: white;
+        background-image: url("../images/uvaescudo.png");
+        background-position: center;
+        background-size: 32% 60%;
+	background-repeat: no-repeat;
+	background-attachment:fixed;
+        opacity:0,5;
+              
+}
+
+img{
+    border: 1px solid black;
+}

@@ -1,0 +1,71 @@
+version 12.4
+no service pad
+service timestamps debug datetime msec
+service timestamps log datetime msec
+service password-encryption
+hostname ap
+enable secret 5 $1$wvUD$1l5Z3KFPF3VrgzCKlYdH30
+no aaa new-model
+
+dot11 ssid WiFi UVa
+   authentication open
+   authentication key-management wpa version 2
+   guest-mode
+   wpa-psk ascii 7 012103006E3D075E731F
+
+power inline negotiation prestandard source
+username Cisco password 7 0802455D0A16
+bridge irb
+
+interface Dot11Radio0
+ ip address 192.168.3.1 255.255.255.0
+ no ip route-cache
+ encryption mode ciphers aes-ccm
+ ssid WiFi UVa
+ channel 2412
+ station-role root
+ bridge-group 1
+ bridge-group 1 subscriber-loop-control
+ bridge-group 1 block-unknown-source
+ no bridge-group 1 source-learning
+ no bridge-group 1 unicast-flooding
+ bridge-group 1 spanning-disabled
+
+interface Dot11Radio1
+ no ip address
+ no ip route-cache
+ shutdown
+ no dfs band block
+ channel dfs
+ station-role root
+ bridge-group 1
+ bridge-group 1 subscriber-loop-control
+ bridge-group 1 block-unknown-source
+ no bridge-group 1 source-learning
+ no bridge-group 1 unicast-flooding
+ bridge-group 1 spanning-disabled
+
+interface FastEthernet0
+ ip address 192.168.2.2 255.255.255.0
+ no ip route-cache
+ duplex auto
+ speed auto
+ bridge-group 1
+ no bridge-group 1 source-learning
+ bridge-group 1 spanning-disabled
+
+interface BVI1
+ ip address dhcp client-id FastEthernet0
+ no ip route-cache
+
+ip default-gateway 192.168.2.1
+ip http server
+no ip http secure-server
+ip http help-path http://www.cisco.com/warp/public/779/smbiz/prodconfig/help/eag
+bridge 1 route ip
+
+line con 0
+line vty 0 4
+ login local
+
+end

@@ -1,0 +1,117 @@
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+hostname router
+boot-start-marker
+boot-end-marker
+no aaa new-model
+resource policy
+clock timezone CST 0
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+ip subnet-zero
+ip cef
+no ip dhcp use vrf connected
+
+interface FastEthernet0/0
+ ip address 157.88.123.102 255.255.0.0
+ ip access-group 112 in
+ ip flow ingress
+ ip nat outside
+ duplex auto
+ speed auto
+
+interface FastEthernet0/1
+ no ip address
+ ip nat inside
+ duplex auto
+ speed auto
+
+interface FastEthernet0/1.2
+ encapsulation dot1Q 2
+ ip address 192.168.2.1 255.255.255.0
+ ip nat inside
+ no snmp trap link-status
+
+interface FastEthernet0/1.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+ ip access-group 110 in
+ ip access-group 113 out
+ ip nat inside
+ no snmp trap link-status
+
+interface FastEthernet0/1.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+ ip access-group 110 in
+ ip access-group 111 out
+ ip flow ingress
+ ip nat inside
+ no snmp trap link-status
+
+interface Serial0/0/0
+ no ip address
+ shutdown
+ no fair-queue
+ clockrate 125000
+
+interface Serial0/0/1
+ no ip address
+ shutdown
+
+router ospf 1
+ log-adjacency-changes
+ network 157.88.0.0 0.0.255.255 area 1
+ network 192.168.10.0 0.0.0.255 area 1
+ network 192.168.20.0 0.0.0.255 area 1
+ default-information originate
+
+ip classless
+ip route 0.0.0.0 0.0.0.0 157.88.123.250
+ip route 192.168.30.0 255.255.255.0 192.168.10.2
+ip flow-export version 5
+ip flow-export destination 192.168.20.10 2055
+
+ip http server
+ip nat inside source list 110 interface FastEthernet0/0 overload
+ip nat inside source static tcp 192.168.20.10 22 157.88.123.102 22 extendable
+ip nat inside source static tcp 192.168.20.10 80 157.88.123.102 80 extendable
+ip nat inside source static tcp 192.168.20.10 8080 157.88.123.102 8080 extendable
+
+access-list 110 permit ip 192.168.10.0 0.0.0.255 any
+access-list 110 permit ip 192.168.20.0 0.0.0.255 any
+access-list 110 permit ip 192.168.30.0 0.0.0.255 any
+access-list 110 deny   ip any any
+
+access-list 111 permit tcp any host 192.168.20.10 eq www
+access-list 111 permit tcp 157.88.123.0 host 192.168.20.10 eq ssh
+access-list 111 permit tcp any host 192.168.20.10 eq 8080
+access-list 111 permit icmp 192.168.10.0 0.0.0.255 host 192.168.20.10
+access-list 111 permit icmp 192.168.20.0 0.0.0.255 host 192.168.20.10
+access-list 111 permit icmp 192.168.30.0 0.0.0.255 host 192.168.20.10
+access-list 111 permit icmp 192.168.2.0 0.0.0.255 host 192.168.20.10
+access-list 111 deny ip any any
+
+access-list 112 deny   ip 192.168.10.0 0.0.0.255 any
+access-list 112 deny   ip 192.168.20.0 0.0.0.255 any
+access-list 112 deny   ip 192.168.30.0 0.0.0.255 any
+access-list 112 deny   ip 127.0.0.0 0.255.255.255 any
+access-list 112 permit ip any any
+
+access-list 113 permit tcp any any established
+access-list 113 permit icmp any any echo-reply
+access-list 113 permit icmp any any unreachable
+access-list 113 permit udp any host 192.168.20.10 eq domain
+access-list 113 deny   ip any any
+
+control-plane
+
+line con 0
+line aux 0
+line vty 0 4
+ login
+
+end
